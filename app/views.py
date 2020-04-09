@@ -38,11 +38,10 @@ def login():
             session["Username"] = request.form["username"]
             Password = form.password.data
 
-            my_user = User.query.filter_by(username=form.username.data) 
-            if my_user is not None and my_user == Username and check_password_hash(user.password,Password)==True:
+            my_user = UserProfile.query.filter_by(username=form.username.data) 
+            if my_user is not None and my_user == request.form["username"] and check_password_hash(user.password,Password)==True:
               session["logged_in"] = True
-              flash("Successfully logged in")
-              return redirect(url_for("home", Username = Username))
+              return redirect(url_for("secure-page"))
 
             # remember to flash a message to the user
             flash("User does not exist or password is incorrect")
@@ -65,6 +64,11 @@ def logout():
     session.pop("Username",None)
     flash("You were logged out", "success")
     return redirect(url_for("home"))
+
+@app.route('/secure-page')
+def secure_page():
+    flash("Sucessfully logged in")
+    return render_template("secure_page.html")
 
 
 @app.route('/<file_name>.txt')
