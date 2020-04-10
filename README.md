@@ -1,2 +1,2 @@
-# Lab 5 Starter Code
+# Lab 5
 Starter code for Lab 5
