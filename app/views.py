@@ -6,7 +6,7 @@ This file creates your application.
 """
 
 from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
 from app.forms import LoginForm
 from app.models import UserProfile
@@ -35,17 +35,19 @@ def login():
     form = LoginForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            session["Username"] = request.form["username"]
             Password = form.password.data
+            my_user = UserProfile.query.filter_by(username=form.username.data).first() 
 
-            my_user = UserProfile.query.filter_by(username=form.username.data) 
-            if my_user is not None and my_user == request.form["username"] and check_password_hash(user.password,Password)==True:
-              session["logged_in"] = True
-              return redirect(url_for("secure-page"))
+            if my_user is not None and my_user.check_password(Password)==True:
+                login_user(my_user)
+                return redirect(url_for("secure_page", my_user = my_user))
 
-            # remember to flash a message to the user
-            flash("User does not exist or password is incorrect")
-            return redirect(url_for("request.url"))  # they should be redirected to a secure-page route instead
+            else:
+                flash("Password is incorrect")
+                return redirect(url_for("login", form = form))
+
+            flash("Please check username or password")
+            return redirect(url_for("login", form = form))
     return render_template("login.html", form=form)
 
 
@@ -61,13 +63,16 @@ def load_user(id):
 
 @app.route('/logout')
 def logout():
-    session.pop("Username",None)
+    logout_user()
     flash("You were logged out", "success")
     return redirect(url_for("home"))
 
-@app.route('/secure-page')
+
+@app.route('/secure_page')
+@login_required
 def secure_page():
-    flash("Sucessfully logged in")
+    if current_user.is_authenticated() == True:
+        flash("Sucessfully logged in")
     return render_template("secure_page.html")
 
 
